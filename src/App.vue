@@ -11,13 +11,17 @@
       </div>
     </div>
 
-    <div class="flex flex-col w-9/12 shadow-md">
+    <div 
+      v-click-outside="() => searchPanelHidden = true"
+      class="flex flex-col container shadow-md"
+    >
       <div 
         class="searchbar"
         :class="searchPanelHidden ? 'rounded-md' : 'rounded-t-md'"
       >
         <SearchIcon />
         <input
+          ref="input"
           @input="searchChanged"
           @focusin="searchPanelHidden = false"
           type="text"
@@ -31,7 +35,7 @@
             I'm searching for
           </p>
           <div class="tags">
-            <tag
+            <TagComponent
               v-for="tag in selectedTags"
               :key="tag.name"
               :name="tag.name"
@@ -59,23 +63,28 @@
         </div>
       </div>
     </div>
+
+    <div class="questions">
+      <question
+        v-for="question in questions"
+        :key="question.question_id"
+        :question="question"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue'
-import { getTags, getQuestions } from "./library/stackoverflow";
+import { getTags, getQuestions, Tag } from "./library/api/stackoverflow";
 import SearchIcon from './assets/search.svg?component'
-import Tag from './components/tags/Tag.vue';
+import TagComponent from './components/tags/Tag.vue';
+import Question from './components/questions/Question.vue';
 
-export type Tag = {
-  name: string;
-  count: number;
-}
 export default defineComponent({
   setup() {
     return {
-      searchPanelHidden: ref(false),
+      searchPanelHidden: ref(true),
       tags: ref([] as Array<Tag>),
       selectedTags: ref([] as Array<Tag>),
       questions: ref([] as Array<any>)
@@ -90,19 +99,26 @@ export default defineComponent({
     selectTag(tag: Tag) {
       if(this.selectedTags.find(item => item.name == tag.name)) {
         return
-      } 
+      }
+      
+      this.resetInput()
 
       this.selectedTags.push(tag)
     },
     removeTag(tag: Tag) {
       this.selectedTags.splice(this.selectedTags.findIndex(item => {item.name === tag.name}), 1)
     },
+    resetInput() {
+      const input = this.$refs.input as HTMLInputElement
+
+      input.value = ''
+    },
     async fetchQuestions() {
       this.questions = await getQuestions(this.selectedTags)
     }
   },
   mounted() {
-    // watch(this.selectedTags, ())
+    watch(this.selectedTags, this.fetchQuestions)
   },
   watch: {
     selectedTags(selectedTags) {
@@ -113,7 +129,8 @@ export default defineComponent({
   },
   components: {
     SearchIcon,
-    Tag
+    TagComponent,
+    Question
   }
 })
 </script>
@@ -147,6 +164,15 @@ export default defineComponent({
   }
 }
 .tags {
-  @apply flex space-x-2;
+  @apply flex 
+    space-x-2;
+}
+.questions {
+  @apply flex 
+    flex-col 
+    space-y-5 
+    container 
+    w-full 
+    mt-10;
 }
 </style>

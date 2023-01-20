@@ -34,6 +34,17 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .tag {
-    @apply px-3 py-1 rounded-xl whitespace-nowrap shadow-sm border-gray-200 border flex items-center cursor-pointer font-semibold;
+    @apply 
+        px-3 
+        py-1 
+        rounded-xl 
+        whitespace-nowrap 
+        shadow-sm 
+        border-gray-200 
+        border 
+        flex 
+        items-center 
+        cursor-pointer 
+        font-semibold;
 }
 </style>
